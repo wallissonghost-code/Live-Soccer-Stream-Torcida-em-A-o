@@ -3,6 +3,11 @@
   const STORAGE_CONFIG = 'live-soccer-realtime-config-v1';
   const CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.91.0/+esm';
 
+  // Backend reaproveitado do antigo projeto Play Life.
+  // A publishable key e segura para uso no frontend; nunca use service_role aqui.
+  const DEFAULT_URL = 'https://tkrgihgzhpbnbcpvwxbp.supabase.co';
+  const DEFAULT_KEY = 'sb_publishable_SrWXb2m7dXqSc0-1lMjpCg_VHLrkpwE';
+
   const uid = () => crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const cleanRoom = (value) => (value || 'ARENA01').toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 24) || 'ARENA01';
 
@@ -24,13 +29,17 @@
     const stored = storedConfig();
     return {
       room: cleanRoom(override.room || query.room || stored.room || 'ARENA01'),
-      url: override.url || query.url || stored.url || '',
-      key: override.key || query.key || stored.key || ''
+      url: override.url || query.url || stored.url || DEFAULT_URL,
+      key: override.key || query.key || stored.key || DEFAULT_KEY
     };
   }
 
   function saveConfig(config) {
-    const safe = { room: cleanRoom(config.room), url: config.url || '', key: config.key || '' };
+    const safe = {
+      room: cleanRoom(config.room),
+      url: config.url || DEFAULT_URL,
+      key: config.key || DEFAULT_KEY
+    };
     localStorage.setItem(STORAGE_CONFIG, JSON.stringify(safe));
     return safe;
   }
@@ -102,7 +111,9 @@
           realtime: { params: { eventsPerSecond: 20 } }
         });
         if (this.channel) await this.supabase.removeChannel(this.channel);
-        this.channel = this.supabase.channel(`live-soccer:${this.config.room}`, { config: { broadcast: { ack: true } } });
+        this.channel = this.supabase.channel(`live-soccer:${this.config.room}`, {
+          config: { broadcast: { ack: true, self: false } }
+        });
         this.channel.on('broadcast', { event: 'message' }, ({ payload }) => this.receive(payload, 'realtime'));
         this.channel.subscribe((status) => {
           if (status === 'SUBSCRIBED') this.setStatus('online');
@@ -119,9 +130,8 @@
 
     shareUrl(path = './') {
       const target = new URL(path, location.href);
+      target.search = '';
       target.searchParams.set('room', this.config.room);
-      if (this.config.url) target.searchParams.set('sburl', this.config.url);
-      if (this.config.key) target.searchParams.set('sbkey', this.config.key);
       return target.href;
     }
 
@@ -137,6 +147,7 @@
     resolveConfig,
     saveConfig,
     cleanRoom,
+    defaults: { url: DEFAULT_URL, key: DEFAULT_KEY },
     storageKey: STORAGE_CONFIG
   };
 })();
