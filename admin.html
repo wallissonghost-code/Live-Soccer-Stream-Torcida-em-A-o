@@ -10,45 +10,44 @@
 <body>
   <main class="admin-shell">
     <header class="admin-header card">
-      <div>
-        <span class="eyebrow">LIVE SOCCER STREAM</span>
-        <h1>Painel Admin</h1>
-        <p>Controle a partida em tempo real.</p>
-      </div>
-      <div class="connection"><span class="dot"></span><b id="connectionLabel">Canal local ativo</b></div>
+      <div><span class="eyebrow">LIVE SOCCER STREAM</span><h1>Painel Admin</h1><p>Controle a partida em tempo real.</p></div>
+      <div class="connection"><span class="dot" id="connectionDot"></span><b id="connectionLabel">Conectando...</b></div>
     </header>
 
     <section class="admin-grid">
+      <article class="card realtime-card">
+        <div class="section-title"><h2>Conexão entre dispositivos</h2><span>Realtime</span></div>
+        <div class="room-row">
+          <label>Sala<input id="roomCode" maxlength="24" value="ARENA01" /></label>
+          <button class="primary connect-button" id="connectRealtime">Conectar</button>
+        </div>
+        <details>
+          <summary>Configuração Supabase</summary>
+          <label>Project URL<input id="supabaseUrl" placeholder="https://xxxx.supabase.co" /></label>
+          <label>Publishable key<input id="supabaseKey" placeholder="sb_publishable_..." /></label>
+          <p class="note">Use apenas a chave pública/publishable. Nunca coloque service_role ou secret key aqui.</p>
+        </details>
+        <div class="share-box">
+          <span>Link da tela da live</span>
+          <input id="gameShareUrl" readonly />
+          <button class="secondary" id="copyGameLink">Copiar link</button>
+        </div>
+      </article>
+
       <article class="card match-card">
         <div class="section-title"><h2>Partida</h2><span>Controle rápido</span></div>
         <div class="score-control">
-          <button data-score="blue" data-delta="-1">−</button>
-          <div><small>TIME AZUL</small><strong id="blueScorePreview">0</strong></div>
-          <button data-score="blue" data-delta="1">+</button>
+          <button data-score="blue" data-delta="-1">−</button><div><small>TIME AZUL</small><strong id="blueScorePreview">0</strong></div><button data-score="blue" data-delta="1">+</button>
           <span class="versus">x</span>
-          <button data-score="red" data-delta="-1">−</button>
-          <div><small>TIME VERMELHO</small><strong id="redScorePreview">0</strong></div>
-          <button data-score="red" data-delta="1">+</button>
+          <button data-score="red" data-delta="-1">−</button><div><small>TIME VERMELHO</small><strong id="redScorePreview">0</strong></div><button data-score="red" data-delta="1">+</button>
         </div>
-        <div class="row-actions">
-          <button class="secondary" id="bluePossession">🔵 Posse Azul</button>
-          <button class="secondary" id="redPossession">🔴 Posse Vermelho</button>
-          <button class="danger" id="resetMatch">↻ Reiniciar</button>
-        </div>
+        <div class="row-actions"><button class="secondary" id="bluePossession">🔵 Posse Azul</button><button class="secondary" id="redPossession">🔴 Posse Vermelho</button><button class="danger" id="resetMatch">↻ Reiniciar</button></div>
       </article>
 
       <article class="card">
         <div class="section-title"><h2>Eventos da torcida</h2><span>Disparo manual</span></div>
-        <div class="team-selector">
-          <button class="team-option active" data-team="blue">🔵 Azul</button>
-          <button class="team-option" data-team="red">🔴 Vermelho</button>
-        </div>
-        <div class="event-grid">
-          <button class="event rose" data-gift="rose">🌹<b>Passe</b><small>Rosa</small></button>
-          <button class="event ball" data-gift="ball">⚽<b>Chute</b><small>Bola</small></button>
-          <button class="event star" data-gift="star">⭐<b>Turbo</b><small>Estrela</small></button>
-          <button class="event box" data-gift="box">🎁<b>Poder</b><small>Presente</small></button>
-        </div>
+        <div class="team-selector"><button class="team-option active" data-team="blue">🔵 Azul</button><button class="team-option" data-team="red">🔴 Vermelho</button></div>
+        <div class="event-grid"><button class="event rose" data-gift="rose">🌹<b>Passe</b><small>Rosa</small></button><button class="event ball" data-gift="ball">⚽<b>Chute</b><small>Bola</small></button><button class="event star" data-gift="star">⭐<b>Turbo</b><small>Estrela</small></button><button class="event box" data-gift="box">🎁<b>Poder</b><small>Presente</small></button></div>
       </article>
 
       <article class="card">
@@ -66,22 +65,20 @@
 
       <article class="card status-card">
         <div class="section-title"><h2>Status do canal</h2><span>Diagnóstico</span></div>
-        <div class="status-line"><span>Transporte</span><b>BroadcastChannel + localStorage</b></div>
+        <div class="status-line"><span>Transporte</span><b id="transportLabel">Local</b></div>
+        <div class="status-line"><span>Sala</span><b id="roomStatus">ARENA01</b></div>
         <div class="status-line"><span>Dispositivo atual</span><b id="deviceType">—</b></div>
         <div class="status-line"><span>Último comando</span><b id="lastCommand">Nenhum</b></div>
-        <p class="note">Este protótipo sincroniza abas no mesmo navegador/origem. Para iPhone ↔ iPad/PC em redes diferentes, a próxima etapa é trocar o transporte por Firebase/WebSocket sem alterar a interface.</p>
+        <div class="status-line"><span>Último estado recebido</span><b id="lastState">Aguardando jogo</b></div>
       </article>
 
       <article class="card open-game-card">
-        <div>
-          <span class="eyebrow">TELA DA LIVE</span>
-          <h2>Abra o campo em outra aba</h2>
-          <p>Use esta tela como controle e deixe o jogo limpo na captura da live.</p>
-        </div>
-        <a class="primary link-button" href="./" target="_blank" rel="noopener">Abrir jogo ↗</a>
+        <div><span class="eyebrow">TELA DA LIVE</span><h2>Abra o campo em outro dispositivo</h2><p>O link já leva a sala e a configuração pública necessária.</p></div>
+        <a class="primary link-button" id="openGameLink" href="./" target="_blank" rel="noopener">Abrir jogo ↗</a>
       </article>
     </section>
   </main>
+  <script src="realtime.js"></script>
   <script src="admin.js"></script>
 </body>
 </html>
