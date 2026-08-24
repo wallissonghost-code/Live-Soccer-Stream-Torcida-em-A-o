@@ -10,80 +10,23 @@
 <body>
   <main class="app-shell">
     <header class="scoreboard glass">
-      <section class="team team-blue">
-        <div class="crest">⚽</div>
-        <div><strong>TIME AZUL</strong><span>Torcida <b id="blueSupport">50%</b></span></div>
-      </section>
-      <section class="score-center">
-        <div class="score"><span id="blueScore">0</span><small>x</small><span id="redScore">0</span></div>
-        <div class="clock" id="clock">00:00</div>
-        <div class="live-dot">● AO VIVO</div>
-      </section>
-      <section class="team team-red">
-        <div><strong>TIME VERMELHO</strong><span>Torcida <b id="redSupport">50%</b></span></div>
-        <div class="crest">⚽</div>
-      </section>
+      <section class="team team-blue"><div class="crest">⚽</div><div><strong>TIME AZUL</strong><span>Torcida <b id="blueSupport">50%</b></span></div></section>
+      <section class="score-center"><div class="score"><span id="blueScore">0</span><small>x</small><span id="redScore">0</span></div><div class="clock" id="clock">00:00</div><div class="live-dot">● AO VIVO</div></section>
+      <section class="team team-red"><div><strong>TIME VERMELHO</strong><span>Torcida <b id="redSupport">50%</b></span></div><div class="crest">⚽</div></section>
     </header>
-
     <section class="game-layout">
-      <aside class="chat glass">
-        <div class="panel-title">💬 CHAT AO VIVO <span class="online-dot"></span></div>
-        <div id="chatList" class="chat-list"></div>
-        <div class="chat-hint">Presentes e comandos entram aqui.</div>
-      </aside>
-
-      <section class="pitch-wrap">
-        <div class="pitch" id="pitch" aria-label="Campo de futebol interativo">
-          <div class="line halfway"></div>
-          <div class="center-circle"></div>
-          <div class="center-dot"></div>
-          <div class="box box-top"></div>
-          <div class="box box-bottom"></div>
-          <div class="goal goal-top"></div>
-          <div class="goal goal-bottom"></div>
-          <div id="playersLayer"></div>
-          <div class="ball" id="ball">⚽</div>
-          <div class="event-flash" id="eventFlash"></div>
-        </div>
-      </section>
-
-      <aside class="right-hud">
-        <div class="viewer-card glass">👁 <b id="viewers">128</b><span>espectadores</span></div>
-        <div class="reactions" id="reactions"></div>
-      </aside>
+      <aside class="chat glass"><div class="panel-title">💬 CHAT AO VIVO <span class="online-dot"></span></div><div id="chatList" class="chat-list"></div><div class="chat-hint">Presentes e comandos entram aqui.</div></aside>
+      <section class="pitch-wrap"><div class="pitch" id="pitch" aria-label="Campo de futebol interativo"><div class="line halfway"></div><div class="center-circle"></div><div class="center-dot"></div><div class="box box-top"></div><div class="box box-bottom"></div><div class="goal goal-top"></div><div class="goal goal-bottom"></div><div id="playersLayer"></div><div class="ball" id="ball">⚽</div><div class="event-flash" id="eventFlash"></div></div></section>
+      <aside class="right-hud"><div class="viewer-card glass">👁 <b id="viewers">128</b><span>espectadores</span></div><div class="reactions" id="reactions"></div></aside>
     </section>
-
     <section class="lower-grid">
-      <article class="status glass">
-        <h3>Status da partida</h3>
-        <div class="status-row"><span>🔥 Combo</span><b id="combo">x0</b></div>
-        <div class="meter"><i id="comboBar" style="width:0%"></i></div>
-        <div class="status-row"><span>⚡ Energia</span><b id="energyLabel">60%</b></div>
-        <div class="meter blue"><i id="energyBar" style="width:60%"></i></div>
-        <div class="status-row"><span>👥 Torcida</span><b id="supportLabel">50%</b></div>
-        <div class="meter purple"><i id="supportBar" style="width:50%"></i></div>
-        <div class="status-row"><span>🎉 Aplausômetro</span><b id="applause">0</b></div>
-      </article>
-
-      <article class="commands glass">
-        <div class="commands-heading"><h2>COMANDOS DA TORCIDA</h2><p>Teste os eventos que depois poderão vir da live.</p></div>
-        <div class="command-grid">
-          <button class="cmd pass" data-action="pass">🌹<strong>PASSE</strong><small>+ combo</small></button>
-          <button class="cmd shoot" data-action="shoot">⚽<strong>CHUTE</strong><small>15 energia</small></button>
-          <button class="cmd turbo" data-action="turbo">🔥<strong>TURBO</strong><small>20 energia</small></button>
-          <button class="cmd defend" data-action="defend">🧤<strong>DEFESA</strong><small>15 energia</small></button>
-          <button class="cmd special" data-action="special">🎁<strong>PODER</strong><small>30 energia</small></button>
-        </div>
-        <div class="energy-footer"><span>⚡ SUA ENERGIA</span><strong id="energyFooter">60 / 100</strong></div>
-      </article>
+      <article class="status glass"><h3>Status da partida</h3><div class="status-row"><span>🔥 Combo</span><b id="combo">x0</b></div><div class="meter"><i id="comboBar" style="width:0%"></i></div><div class="status-row"><span>⚡ Energia</span><b id="energyLabel">60%</b></div><div class="meter blue"><i id="energyBar" style="width:60%"></i></div><div class="status-row"><span>👥 Torcida</span><b id="supportLabel">50%</b></div><div class="meter purple"><i id="supportBar" style="width:50%"></i></div><div class="status-row"><span>🎉 Aplausômetro</span><b id="applause">0</b></div></article>
+      <article class="commands glass"><div class="commands-heading"><h2>COMANDOS DA TORCIDA</h2><p>Teste os eventos que depois poderão vir da live.</p></div><div class="command-grid"><button class="cmd pass" data-action="pass">🌹<strong>PASSE</strong><small>+ combo</small></button><button class="cmd shoot" data-action="shoot">⚽<strong>CHUTE</strong><small>15 energia</small></button><button class="cmd turbo" data-action="turbo">🔥<strong>TURBO</strong><small>20 energia</small></button><button class="cmd defend" data-action="defend">🧤<strong>DEFESA</strong><small>15 energia</small></button><button class="cmd special" data-action="special">🎁<strong>PODER</strong><small>30 energia</small></button></div><div class="energy-footer"><span>⚡ SUA ENERGIA</span><strong id="energyFooter">60 / 100</strong></div></article>
     </section>
-
-    <footer class="footer-panels">
-      <article class="glass ranking"><h3>Ranking da torcida</h3><div id="ranking"></div></article>
-      <article class="glass gifts"><h3>Top presentes</h3><div>⚽ <b id="giftBall">0</b> · 🎁 <b id="giftBox">0</b> · 🌹 <b id="giftRose">0</b> · ⭐ <b id="giftStar">0</b></div></article>
-    </footer>
+    <footer class="footer-panels"><article class="glass ranking"><h3>Ranking da torcida</h3><div id="ranking"></div></article><article class="glass gifts"><h3>Top presentes</h3><div>⚽ <b id="giftBall">0</b> · 🎁 <b id="giftBox">0</b> · 🌹 <b id="giftRose">0</b> · ⭐ <b id="giftStar">0</b></div></article></footer>
   </main>
+  <script src="realtime.js"></script>
   <script src="game.js"></script>
-  <script src="control-bridge.js"></script>
+  <script src="remote-control.js"></script>
 </body>
 </html>
