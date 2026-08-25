@@ -10,7 +10,8 @@
     return {
       ...state,
       blueScore: Math.max(0, (Number(state.blueScore) || 0) + scoreOffset.blue),
-      redScore: Math.max(0, (Number(state.redScore) || 0) + scoreOffset.red)
+      redScore: Math.max(0, (Number(state.redScore) || 0) + scoreOffset.red),
+      match: window.LiveSoccerMatch?.getState?.() || null
     };
   }
 
@@ -27,6 +28,7 @@
     if (message.event !== 'command') return;
     const { type, payload = {} } = message.payload || {};
     const api = window.LiveSoccer;
+    const match = window.LiveSoccerMatch;
     if (type === 'gift') api.triggerGift?.(payload.gift, payload.user || 'Viewer', payload.team || 'blue');
     else if (type === 'comment') {
       const fn = api.triggerComment || api.handleComment;
@@ -40,6 +42,12 @@
       scoreOffset.red = Math.max(0, Number(payload.red) || 0) - (Number(raw.redScore) || 0);
       paintScore();
     }
+    else if (type === 'customize') match?.customize?.(payload);
+    else if (type === 'matchConfig') match?.configure?.(payload);
+    else if (type === 'pause') match?.pause?.();
+    else if (type === 'resume') match?.resume?.();
+    else if (type === 'secondHalf') match?.secondHalf?.();
+    else if (type === 'finish') match?.finish?.();
     else if (type === 'reset') api.reset?.();
   }
 
