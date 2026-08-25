@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#07111f" />
   <title>Live Soccer Admin</title>
-  <link rel="stylesheet" href="admin.css" />
+  <link rel="stylesheet" href="admin.css?v=6" />
 </head>
 <body>
   <main class="admin-shell">
@@ -17,30 +17,32 @@
     <section class="admin-grid">
       <article class="card realtime-card">
         <div class="section-title"><h2>Conexão entre dispositivos</h2><span>Realtime</span></div>
-        <div class="room-row">
-          <label>Sala<input id="roomCode" maxlength="24" value="ARENA01" /></label>
-          <button class="primary connect-button" id="connectRealtime">Conectar</button>
+        <div class="room-row"><label>Sala<input id="roomCode" maxlength="24" value="ARENA01" /></label><button class="primary connect-button" id="connectRealtime">Conectar</button></div>
+        <details><summary>Configuração Supabase</summary><label>Project URL<input id="supabaseUrl" /></label><label>Publishable key<input id="supabaseKey" /></label><p class="note">Use apenas a chave pública/publishable.</p></details>
+        <div class="share-box"><span>Link da tela da live</span><input id="gameShareUrl" readonly /><button class="secondary" id="copyGameLink">Copiar link</button></div>
+      </article>
+
+      <article class="card identity-card">
+        <div class="section-title"><h2>Identidade dos times</h2><span>Visual</span></div>
+        <div class="team-config-grid">
+          <div class="team-config blue-config"><h3>🔵 Time Azul</h3><label>Nome<input id="blueName" value="TIME AZUL" maxlength="24" /></label><label>Cor<input id="blueColor" type="color" value="#1682e9" /></label><label>Escudo / emoji / URL<input id="blueCrestInput" value="⚽" /></label></div>
+          <div class="team-config red-config"><h3>🔴 Time Vermelho</h3><label>Nome<input id="redName" value="TIME VERMELHO" maxlength="24" /></label><label>Cor<input id="redColor" type="color" value="#e33a47" /></label><label>Escudo / emoji / URL<input id="redCrestInput" value="⚽" /></label></div>
         </div>
-        <details>
-          <summary>Configuração Supabase</summary>
-          <label>Project URL<input id="supabaseUrl" placeholder="https://xxxx.supabase.co" /></label>
-          <label>Publishable key<input id="supabaseKey" placeholder="sb_publishable_..." /></label>
-          <p class="note">Use apenas a chave pública/publishable. Nunca coloque service_role ou secret key aqui.</p>
-        </details>
-        <div class="share-box">
-          <span>Link da tela da live</span>
-          <input id="gameShareUrl" readonly />
-          <button class="secondary" id="copyGameLink">Copiar link</button>
-        </div>
+        <button class="primary full" id="applyTeams">Aplicar identidade na live</button>
+      </article>
+
+      <article class="card rules-card">
+        <div class="section-title"><h2>Regras da partida</h2><span id="matchStatusBadge">1º TEMPO</span></div>
+        <label>Duração total da partida (minutos)<input id="matchDuration" type="number" min="1" max="90" value="5" /></label>
+        <button class="primary full" id="applyRules">Aplicar duração</button>
+        <div class="match-controls"><button class="warning" id="pauseMatch">⏸ Pausar</button><button class="success" id="resumeMatch">▶ Retomar</button><button class="secondary" id="secondHalf">2º Tempo</button><button class="danger" id="finishMatch">🏁 Encerrar</button></div>
+        <div class="status-line"><span>Estado</span><b id="liveMatchStatus">Jogando</b></div>
+        <div class="status-line"><span>Fase</span><b id="liveMatchPhase">1º TEMPO</b></div>
       </article>
 
       <article class="card match-card">
         <div class="section-title"><h2>Partida</h2><span>Controle rápido</span></div>
-        <div class="score-control">
-          <button data-score="blue" data-delta="-1">−</button><div><small>TIME AZUL</small><strong id="blueScorePreview">0</strong></div><button data-score="blue" data-delta="1">+</button>
-          <span class="versus">x</span>
-          <button data-score="red" data-delta="-1">−</button><div><small>TIME VERMELHO</small><strong id="redScorePreview">0</strong></div><button data-score="red" data-delta="1">+</button>
-        </div>
+        <div class="score-control"><button data-score="blue" data-delta="-1">−</button><div><small>TIME AZUL</small><strong id="blueScorePreview">0</strong></div><button data-score="blue" data-delta="1">+</button><span class="versus">x</span><button data-score="red" data-delta="-1">−</button><div><small>TIME VERMELHO</small><strong id="redScorePreview">0</strong></div><button data-score="red" data-delta="1">+</button></div>
         <div class="row-actions"><button class="secondary" id="bluePossession">🔵 Posse Azul</button><button class="secondary" id="redPossession">🔴 Posse Vermelho</button><button class="danger" id="resetMatch">↻ Reiniciar</button></div>
       </article>
 
@@ -50,35 +52,15 @@
         <div class="event-grid"><button class="event rose" data-gift="rose">🌹<b>Passe</b><small>Rosa</small></button><button class="event ball" data-gift="ball">⚽<b>Chute</b><small>Bola</small></button><button class="event star" data-gift="star">⭐<b>Turbo</b><small>Estrela</small></button><button class="event box" data-gift="box">🎁<b>Poder</b><small>Presente</small></button></div>
       </article>
 
-      <article class="card">
-        <div class="section-title"><h2>Simular comentário</h2><span>Teste de live</span></div>
-        <label>Usuário<input id="viewerName" value="AdminTest" /></label>
-        <label>Comentário<input id="viewerComment" placeholder="Ex.: chuta, passa, turbo..." /></label>
-        <button class="primary full" id="sendComment">Enviar comando</button>
-      </article>
+      <article class="card"><div class="section-title"><h2>Simular comentário</h2><span>Teste de live</span></div><label>Usuário<input id="viewerName" value="AdminTest" /></label><label>Comentário<input id="viewerComment" placeholder="Ex.: chuta, passa, turbo..." /></label><button class="primary full" id="sendComment">Enviar comando</button></article>
+      <article class="card"><div class="section-title"><h2>Audiência</h2><span>Preview</span></div><label>Espectadores<input id="viewerCount" type="number" min="0" value="128" /></label><button class="primary full" id="setViewers">Atualizar espectadores</button></article>
 
-      <article class="card">
-        <div class="section-title"><h2>Audiência</h2><span>Preview</span></div>
-        <label>Espectadores<input id="viewerCount" type="number" min="0" value="128" /></label>
-        <button class="primary full" id="setViewers">Atualizar espectadores</button>
-      </article>
+      <article class="card status-card"><div class="section-title"><h2>Status do canal</h2><span>Diagnóstico</span></div><div class="status-line"><span>Transporte</span><b id="transportLabel">Local</b></div><div class="status-line"><span>Sala</span><b id="roomStatus">ARENA01</b></div><div class="status-line"><span>Dispositivo atual</span><b id="deviceType">—</b></div><div class="status-line"><span>Último comando</span><b id="lastCommand">Nenhum</b></div><div class="status-line"><span>Último estado recebido</span><b id="lastState">Aguardando jogo</b></div></article>
 
-      <article class="card status-card">
-        <div class="section-title"><h2>Status do canal</h2><span>Diagnóstico</span></div>
-        <div class="status-line"><span>Transporte</span><b id="transportLabel">Local</b></div>
-        <div class="status-line"><span>Sala</span><b id="roomStatus">ARENA01</b></div>
-        <div class="status-line"><span>Dispositivo atual</span><b id="deviceType">—</b></div>
-        <div class="status-line"><span>Último comando</span><b id="lastCommand">Nenhum</b></div>
-        <div class="status-line"><span>Último estado recebido</span><b id="lastState">Aguardando jogo</b></div>
-      </article>
-
-      <article class="card open-game-card">
-        <div><span class="eyebrow">TELA DA LIVE</span><h2>Abra o campo em outro dispositivo</h2><p>O link já leva a sala e a configuração pública necessária.</p></div>
-        <a class="primary link-button" id="openGameLink" href="./" target="_blank" rel="noopener">Abrir jogo ↗</a>
-      </article>
+      <article class="card open-game-card"><div><span class="eyebrow">TELA DA LIVE</span><h2>Abra o campo em outro dispositivo</h2><p>O link já leva a sala e a configuração pública necessária.</p></div><a class="primary link-button" id="openGameLink" href="./" target="_blank" rel="noopener">Abrir jogo ↗</a></article>
     </section>
   </main>
-  <script src="realtime.js"></script>
-  <script src="admin.js"></script>
+  <script src="realtime.js?v=6"></script>
+  <script src="admin.js?v=6"></script>
 </body>
 </html>
