@@ -19,9 +19,10 @@ const state = {
   activeRed: 8,
   ball: { x: 50, y: 53, ownerTeam: 'blue', ownerNumber: 10, moving: false },
   nextAutoActionAt: 3,
-  turboUntil: 0,
-  shieldUntil: 0,
-  specialUntil: 0,
+  effects: {
+    blue: { turboUntil: 0, shieldUntil: 0, specialUntil: 0 },
+    red: { turboUntil: 0, shieldUntil: 0, specialUntil: 0 }
+  },
   gifts: { ball: 0, box: 0, rose: 0, star: 0 },
   fans: {
     FutFan_BR: 12450,
@@ -56,6 +57,9 @@ function getPlayer(team, n){ return players.find(p => p.team === team && p.n ===
 function teamPlayers(team){ return players.filter(p => p.team === team); }
 function activePlayer(team = state.possession){ return getPlayer(team, team === 'blue' ? state.activeBlue : state.activeRed); }
 function attackDirection(team){ return team === 'blue' ? -1 : 1; }
+function effectState(team){ return state.effects[team === 'red' ? 'red' : 'blue']; }
+function otherTeam(team){ return team === 'blue' ? 'red' : 'blue'; }
+function isEffectActive(team, type){ return state.seconds < (effectState(team)[`${type}Until`] || 0); }
 
 function renderPlayers(){
   const layer = $('playersLayer');
@@ -80,6 +84,9 @@ function syncPlayerPositions(){
     el.style.left = `${p.x}%`;
     el.style.top = `${p.y}%`;
     el.classList.toggle('active', (p.team === 'blue' && p.n === state.activeBlue) || (p.team === 'red' && p.n === state.activeRed));
+    el.classList.toggle('team-turbo', isEffectActive(p.team, 'turbo'));
+    el.classList.toggle('team-shield', isEffectActive(p.team, 'shield'));
+    el.classList.toggle('team-special', isEffectActive(p.team, 'special'));
   });
 }
 
@@ -115,6 +122,7 @@ function updateUI(){
   $('giftRose').textContent = state.gifts.rose;
   $('giftStar').textContent = state.gifts.star;
   renderRanking();
+  syncPlayerPositions();
 }
 
 function renderRanking(){
@@ -203,7 +211,7 @@ function tacticalMovement(){
 
     const hasBall = p.team === poss && p.n === (p.team === 'blue' ? state.activeBlue : state.activeRed);
     const teamAttacking = p.team === poss;
-    const boost = state.seconds < state.turboUntil && teamAttacking ? 1.8 : 1;
+    const boost = teamAttacking && isEffectActive(p.team, 'turbo') ? 1.8 : 1;
 
     let targetX = p.homeX;
     let targetY = p.homeY;
@@ -256,7 +264,7 @@ function pass({forced=false, user='Torcida'}={}){
   moveBall(receiver.x, receiver.y, 430);
   setTimeout(()=>{
     if (Math.random() < interceptChance) {
-      const opponents = teamPlayers(team === 'blue' ? 'red' : 'blue').filter(p=>!p.g).sort((a,b)=>dist(a,receiver)-dist(b,receiver));
+      const opponents = teamPlayers(otherTeam(team)).filter(p=>!p.g).sort((a,b)=>dist(a,receiver)-dist(b,receiver));
       const thief = opponents[0];
       setPossession(thief.team, thief.n);
       state.combo = Math.max(0,state.combo-1);
@@ -275,10 +283,10 @@ function shotProbability(team, shooter){
   const goalY = team === 'blue' ? 5 : 95;
   const distance = Math.abs(shooter.y - goalY);
   let chance = 0.3 + clamp((55-distance)/100,0,0.28);
-  if (state.seconds < state.turboUntil) chance += 0.08;
-  if (state.seconds < state.specialUntil) chance += 0.18;
-  const defendingTeam = team === 'blue' ? 'red' : 'blue';
-  if (state.seconds < state.shieldUntil && defendingTeam === 'red') chance -= 0.2;
+  if (isEffectActive(team, 'turbo')) chance += 0.08;
+  if (isEffectActive(team, 'special')) chance += 0.18;
+  const defendingTeam = otherTeam(team);
+  if (isEffectActive(defendingTeam, 'shield')) chance -= 0.2;
   return clamp(chance,0.12,0.82);
 }
 
@@ -310,7 +318,7 @@ function shoot({forced=false,user='Torcida'}={}){
     } else {
       flash('🧤 DEFENDEU!');
       state.combo = Math.max(0,state.combo-1);
-      const defender = team === 'blue' ? 'red' : 'blue';
+      const defender = otherTeam(team);
       const keeper = getPlayer(defender,1);
       setPossession(defender,keeper.n);
       setTimeout(()=>goalkeeperRelease(defender),700);
@@ -335,7 +343,7 @@ function resetPositions(){
 
 function resetAfterGoal(scoringTeam){
   resetPositions();
-  const kickoffTeam = scoringTeam === 'blue' ? 'red' : 'blue';
+  const kickoffTeam = otherTeam(scoringTeam);
   const kickoff = getPlayer(kickoffTeam,8) || getPlayer(kickoffTeam,10);
   state.ball.x=50; state.ball.y=50; state.ball.moving=false;
   moveBall(50,50,250);
@@ -345,10 +353,10 @@ function resetAfterGoal(scoringTeam){
 function attemptTackle(){
   const carrier = activePlayer();
   if (!carrier || carrier.g) return;
-  const other = state.possession === 'blue' ? 'red' : 'blue';
+  const other = otherTeam(state.possession);
   const nearest = teamPlayers(other).filter(p=>!p.g).sort((a,b)=>dist(a,carrier)-dist(b,carrier))[0];
   if (!nearest || dist(nearest,carrier) > 8) return;
-  const shielded = state.seconds < state.shieldUntil && state.possession === 'blue';
+  const shielded = isEffectActive(state.possession, 'shield');
   const stealChance = shielded ? 0.04 : 0.12;
   if (Math.random() < stealChance) {
     setPossession(other,nearest.n);
@@ -368,45 +376,52 @@ function autoDecision(){
   state.nextAutoActionAt = state.seconds + Math.floor(rand(2,5));
 }
 
-function turbo(user='Torcida'){
+function turbo(user='Torcida',team=state.possession){
+  team = team === 'red' ? 'red' : 'blue';
   if(!spend(20)) return;
-  state.turboUntil = state.seconds + 8;
+  effectState(team).turboUntil = state.seconds + 8;
   state.combo += 3;
   state.applause += 2500;
-  state.supportBlue = clamp(state.supportBlue + (state.possession==='blue'?2:-2),10,90);
-  addChat(user,'🔥 TURBO por 8s!',state.possession);
+  state.supportBlue = clamp(state.supportBlue + (team==='blue'?2:-2),10,90);
+  addChat(user,`🔥 TURBO ${team === 'blue' ? 'AZUL' : 'VERMELHO'} por 8s!`,team);
   reaction('🔥'); reaction('⭐');
-  flash('🔥 TURBO!');
+  flash(`🔥 TURBO ${team === 'blue' ? 'AZUL' : 'VERMELHO'}!`);
+  syncPlayerPositions();
 }
 
-function defend(user='Torcida'){
+function defend(user='Torcida',team=state.possession){
+  team = team === 'red' ? 'red' : 'blue';
   if(!spend(15)) return;
-  state.shieldUntil = state.seconds + 10;
+  effectState(team).shieldUntil = state.seconds + 10;
   state.combo += 1;
   state.applause += 1200;
-  addChat(user,'🧤 defesa reforçada!',state.possession);
+  addChat(user,`🧤 defesa ${team === 'blue' ? 'AZUL' : 'VERMELHA'} reforçada!`,team);
   reaction('🧤');
-  flash('🧤 SUPER DEFESA');
+  flash(`🧤 DEFESA ${team === 'blue' ? 'AZUL' : 'VERMELHA'}`);
+  syncPlayerPositions();
 }
 
-function special(user='Torcida'){
+function special(user='Torcida',team=state.possession){
+  team = team === 'red' ? 'red' : 'blue';
   if(!spend(30)) return;
-  state.specialUntil = state.seconds + 10;
-  state.turboUntil = Math.max(state.turboUntil,state.seconds+6);
+  const fx = effectState(team);
+  fx.specialUntil = state.seconds + 10;
+  fx.turboUntil = Math.max(fx.turboUntil,state.seconds+6);
   state.combo += 5;
   state.applause += 6000;
   state.viewers += Math.floor(20+Math.random()*80);
-  addChat(user,'🎁 PODER ESPECIAL!',state.possession);
+  addChat(user,`🎁 PODER ESPECIAL ${team === 'blue' ? 'AZUL' : 'VERMELHO'}!`,team);
   for(let i=0;i<10;i++) setTimeout(()=>reaction(['🎁','⭐','❤️','⚽'][Math.floor(Math.random()*4)]),i*80);
-  flash('🎁 PODER ESPECIAL');
+  flash(`🎁 PODER ${team === 'blue' ? 'AZUL' : 'VERMELHO'}`);
+  syncPlayerPositions();
 }
 
 function handleAction(action){
   if(action==='pass') pass({forced:true,user:'Lucas7'});
   if(action==='shoot') shoot({forced:true,user:'FutFan_BR'});
-  if(action==='turbo') turbo('DaniCR7');
-  if(action==='defend') defend('Lariii');
-  if(action==='special') special('Maeve10');
+  if(action==='turbo') turbo('DaniCR7',state.possession);
+  if(action==='defend') defend('Lariii',state.possession);
+  if(action==='special') special('Maeve10',state.possession);
   updateUI();
 }
 
@@ -428,37 +443,48 @@ setInterval(()=>{
 
 window.LiveSoccer = {
   triggerGift(type,user='Viewer',team='blue'){
-    if(team === 'blue' || team === 'red') {
-      if(state.possession !== team) {
-        const p = getPlayer(team,10) || getPlayer(team,8);
-        setPossession(team,p.n);
-      }
+    team = team === 'red' ? 'red' : 'blue';
+    if(state.possession !== team) {
+      const p = getPlayer(team,10) || getPlayer(team,8);
+      setPossession(team,p.n);
     }
     const actions = {
       rose:()=>{ state.gifts.rose++; rewardFan(user,100); reaction('🌹'); pass({forced:true,user}); },
       ball:()=>{ state.gifts.ball++; rewardFan(user,250); reaction('⚽'); shoot({forced:true,user}); },
-      star:()=>{ state.gifts.star++; rewardFan(user,350); reaction('⭐'); turbo(user); },
-      box:()=>{ state.gifts.box++; rewardFan(user,700); reaction('🎁'); special(user); }
+      star:()=>{ state.gifts.star++; rewardFan(user,350); reaction('⭐'); turbo(user,team); },
+      box:()=>{ state.gifts.box++; rewardFan(user,700); reaction('🎁'); special(user,team); }
     };
     (actions[type] || actions.rose)();
     updateUI();
   },
   triggerComment(command,user='Viewer',team='blue'){
     const text = String(command).trim().toLowerCase();
-    if(team !== state.possession && (team==='blue'||team==='red')) {
+    team = team === 'red' ? 'red' : 'blue';
+    if(team !== state.possession) {
       const p = getPlayer(team,10) || getPlayer(team,8);
       setPossession(team,p.n);
     }
     if(text.includes('passe')) pass({forced:true,user});
     else if(text.includes('chute') || text.includes('gol')) shoot({forced:true,user});
-    else if(text.includes('turbo')) turbo(user);
-    else if(text.includes('defesa') || text.includes('defende')) defend(user);
-    else if(text.includes('poder') || text.includes('especial')) special(user);
+    else if(text.includes('turbo')) turbo(user,team);
+    else if(text.includes('defesa') || text.includes('defende')) defend(user,team);
+    else if(text.includes('poder') || text.includes('especial')) special(user,team);
     addChat(user,text,team);
     updateUI();
   },
   setViewers(n){ state.viewers = Math.max(0,Number(n)||0); updateUI(); },
   setPossession(team,number=10){ if(team==='blue'||team==='red') setPossession(team,number); },
+  setScore(blue,red){
+    state.blueScore = Math.max(0, Number(blue) || 0);
+    state.redScore = Math.max(0, Number(red) || 0);
+    updateUI();
+  },
+  triggerEffect(type,team,user='Admin'){
+    if(type==='turbo') turbo(user,team);
+    else if(type==='defend' || type==='shield') defend(user,team);
+    else if(type==='special') special(user,team);
+    updateUI();
+  },
   getState(){ return JSON.parse(JSON.stringify(state)); },
   reset(){ location.reload(); }
 };
