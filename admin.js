@@ -20,6 +20,24 @@
     $('roomStatus').textContent = transport.config.room;
   }
 
+  function applyMatchState(match) {
+    if (!match) return;
+    $('liveMatchStatus').textContent = ({playing:'Jogando',paused:'Pausado',halftime:'Intervalo',fulltime:'Finalizado'})[match.status] || match.status || '—';
+    $('liveMatchPhase').textContent = match.phase || '—';
+    $('matchStatusBadge').textContent = match.phase || 'PARTIDA';
+    if (match.blue) {
+      $('blueName').value = match.blue.name || $('blueName').value;
+      $('blueColor').value = match.blue.color || $('blueColor').value;
+      $('blueCrestInput').value = match.blue.crest || $('blueCrestInput').value;
+    }
+    if (match.red) {
+      $('redName').value = match.red.name || $('redName').value;
+      $('redColor').value = match.red.color || $('redColor').value;
+      $('redCrestInput').value = match.red.crest || $('redCrestInput').value;
+    }
+    if (match.durationSeconds) $('matchDuration').value = Math.max(1, Math.round(match.durationSeconds / 60));
+  }
+
   function bindTransport() {
     transport.onStatus((status) => {
       $('connectionLabel').textContent = statusText(status);
@@ -34,6 +52,7 @@
       $('blueScorePreview').textContent = previewScore.blue;
       $('redScorePreview').textContent = previewScore.red;
       if (typeof state.viewers !== 'undefined') $('viewerCount').value = Math.max(0, Number(state.viewers) || 0);
+      applyMatchState(state.match);
       $('lastState').textContent = `${source} · ${new Date(message.at || Date.now()).toLocaleTimeString('pt-BR')}`;
     });
   }
@@ -67,6 +86,17 @@
     send('gift', { gift: btn.dataset.gift, team: selectedTeam, user });
     btn.classList.remove('pulse'); void btn.offsetWidth; btn.classList.add('pulse');
   }));
+
+  $('applyTeams').addEventListener('click', () => send('customize', {
+    blue: { name: $('blueName').value.trim(), color: $('blueColor').value, crest: $('blueCrestInput').value.trim() },
+    red: { name: $('redName').value.trim(), color: $('redColor').value, crest: $('redCrestInput').value.trim() }
+  }));
+
+  $('applyRules').addEventListener('click', () => send('matchConfig', { durationMinutes: Math.max(1, Math.min(90, Number($('matchDuration').value) || 5)) }));
+  $('pauseMatch').addEventListener('click', () => send('pause'));
+  $('resumeMatch').addEventListener('click', () => send('resume'));
+  $('secondHalf').addEventListener('click', () => send('secondHalf'));
+  $('finishMatch').addEventListener('click', () => { if (confirm('Encerrar a partida agora?')) send('finish'); });
 
   $('sendComment').addEventListener('click', () => {
     const text = $('viewerComment').value.trim();
